@@ -17,9 +17,9 @@ def dict_to_xml(tag, d):
         elem.append(child)
     return(elem);
 
-def createCreateClaimsSubmission():
+def createCreateClaimsSubmission(i):
     claimsSubmit = {
-        "PolicyId": 1234,
+        "PolicyId": "1234-ABC-12ZQ-{0}".format(i),
         "PolicyHolder": "aName",
         "ClaimType":"SomeType",
         "IncidentDate":"adate",
@@ -37,29 +37,21 @@ if __name__ =='__main__':
     print (os.getlogin())
     print (os.getenv("SPARK_HOME","spark home"))
 
-    tableName = "CUSTOMER_INFO4"
+    fileName = "claims.xml"
 
     #----------------------------
-    sc = SparkContext(appName = "WriteRDD")
-    hc = HiveContext(sc)
+    sc = SparkContext(appName = "Write XML Ins Claims Files")
 
 
-    #----------------------------
-    rowCountPerGroup = 10
-    rowDef = Row("transGroup","CustomerId","CompanyName","Name","EMAIL","Address","CustomerSince","AnnualSales","LastOrderDate")
-    fake = Factory.create()
+    a = sc.parallelize(range(1,10))
+    claimsList = a.map(lambda i: createCreateClaimsSubmission(i) ).collect()
 
+    f = open(fileName, 'w')
+    for claim in claimsList:
+        f.write(claim)
 
-    a = sc.parallelize(range(1,1000))
-    rddRows = a.map(lambda i: createCreateClaimsSubmission(i) )
-    print("----------- Using the predefined schema")
+    print("----------- File Successfully save to {0}".format(fileName))
 
-print("----------- Using the inferred schema")
-#df = hc.inferSchema(rddRows)
-df = hc.createDataFrame(rddRows)
-
-df.printSchema()
-print("----------- \n\n\n\n")
 
 
 
